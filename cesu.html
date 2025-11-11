@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网速单位转换器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background-color: white;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .conversion-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .unit-selector {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .result h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .conversion-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .result-unit {
+            font-size: 1.2em;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .unit-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+        
+        .examples {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .example-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .example-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+                max-width: 95%;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .conversion-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 网速单位转换器</h1>
+        
+        <div class="input-group">
+            <label for="speedValue">网速值：</label>
+            <input type="number" id="speedValue" placeholder="请输入网速数值" step="0.01" min="0" value="100">
+        </div>
+        
+        <div class="conversion-row">
+            <div class="unit-selector">
+                <label for="fromUnit">从单位：</label>
+                <select id="fromUnit">
+                    <option value="bps">bps (比特每秒)</option>
+                    <option value="Kbps">Kbps (千比特每秒)</option>
+                    <option value="Mbps" selected>Mbps (兆比特每秒)</option>
+                    <option value="Gbps">Gbps (千兆比特每秒)</option>
+                    <option value="MBps">MB/s (兆字节每秒)</option>
+                </select>
+            </div>
+            
+            <div class="arrow">→</div>
+            
+            <div class="unit-selector">
+                <label for="toUnit">到单位：</label>
+                <select id="toUnit">
+                    <option value="bps">bps (比特每秒)</option>
+                    <option value="Kbps">Kbps (千比特每秒)</option>
+                    <option value="Mbps">Mbps (兆比特每秒)</option>
+                    <option value="Gbps">Gbps (千兆比特每秒)</option>
+                    <option value="MBps" selected>MB/s (兆字节每秒)</option>
+                </select>
+            </div>
+        </div>
+        
+        <button onclick="convertSpeed()">转换网速</button>
+        
+        <div class="result" id="result">
+            <h3>转换结果</h3>
+            <div class="conversion-value" id="conversionResult">12.5</div>
+            <div class="result-unit" id="resultUnit">MB/s</div>
+            <div class="unit-info" id="unitInfo">100 Mbps = 12.5 MB/s<br>下载1GB文件大约需要 1.4 分钟</div>
+        </div>
+        
+        <div class="examples">
+            <h3>💡 常见网速参考</h3>
+            <div class="example-item">
+                <span>100 Mbps 宽带：</span>
+                <span>≈ 12.5 MB/s</span>
+            </div>
+            <div class="example-item">
+                <span>1000 Mbps 宽带：</span>
+                <span>≈ 125 MB/s</span>
+            </div>
+            <div class="example-item">
+                <span>50 Mbps 4G网络：</span>
+                <span>≈ 6.25 MB/s</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 单位转换系数（以bps为基准）
+        const conversionFactors = {
+            bps: 1,
+            Kbps: 1000,
+            Mbps: 1000000,
+            Gbps: 1000000000,
+            MBps: 8000000  // 1字节=8比特
+        };
+        
+        function formatNumber(value) {
+            // 智能格式化数字，避免显示不必要的零
+            if (value === 0) return '0';
+            
+            if (value >= 1000) {
+                // 大数字：保留0-2位小数
+                return value.toFixed(value % 1 === 0 ? 0 : Math.min(2, (value.toString().split('.')[1] || '').length));
+            } else if (value >= 1) {
+                // 中等数字：保留1-3位小数
+                const decimalPlaces = Math.max(1, Math.min(3, (value.toString().split('.')[1] || '').length));
+                const formatted = value.toFixed(decimalPlaces);
+                // 去除末尾的零
+                return formatted.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.$/, '');
+            } else {
+                // 小数字：保留3-6位有效数字
+                return value.toPrecision(4).replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.$/, '');
+            }
+        }
+        
+        function convertSpeed() {
+            const speedValue = parseFloat(document.getElementById('speedValue').value);
+            const fromUnit = document.getElementById('fromUnit').value;
+            const toUnit = document.getElementById('toUnit').value;
+            
+            if (isNaN(speedValue) || speedValue < 0) {
+                alert('请输入有效的网速数值');
+                return;
+            }
+            
+            // 转换为bps基准单位
+            const valueInBps = speedValue * conversionFactors[fromUnit];
+            
+            // 转换为目标单位
+            const convertedValue = valueInBps / conversionFactors[toUnit];
+            
+            // 格式化显示结果
+            document.getElementById('conversionResult').textContent = formatNumber(convertedValue);
+            document.getElementById('resultUnit').textContent = toUnit;
+            
+            // 更新单位信息和实用解释
+            updateUnitInfo(speedValue, fromUnit, convertedValue, toUnit);
+        }
+        
+        function updateUnitInfo(originalValue, fromUnit, convertedValue, toUnit) {
+            let infoHtml = `${originalValue} ${fromUnit} = ${formatNumber(convertedValue)} ${toUnit}`;
+            let explanation = '';
+            
+            if (toUnit === 'MBps') {
+                // 下载时间估算
+                const fileSize1GB = 1024; // 1GB = 1024MB
+                if (convertedValue > 0) {
+                    const downloadTimeSeconds = fileSize1GB / convertedValue;
+                    
+                    if (downloadTimeSeconds < 60) {
+                        explanation = `下载1GB文件大约需要 ${downloadTimeSeconds.toFixed(1)} 秒`;
+                    } else if (downloadTimeSeconds < 3600) {
+                        explanation = `下载1GB文件大约需要 ${(downloadTimeSeconds / 60).toFixed(1)} 分钟`;
+                    } else {
+                        explanation = `下载1GB文件大约需要 ${(downloadTimeSeconds / 3600).toFixed(1)} 小时`;
+                    }
+                }
+            } else if (toUnit === 'Mbps') {
+                // 网络类型参考
+                if (convertedValue >= 1000) {
+                    explanation = '⚡ 千兆网络速度（5G/光纤）';
+                } else if (convertedValue >= 100) {
+                    explanation = '🚀 高速宽带网络';
+                } else if (convertedValue >= 30) {
+                    explanation = '📶 4G网络典型速度';
+                } else {
+                    explanation = '📱 基础网络速度';
+                }
+            }
+            
+            if (explanation) {
+                infoHtml += '<br>' + explanation;
+            }
+            
+            document.getElementById('unitInfo').innerHTML = infoHtml;
+        }
+        
+        // 页面加载时自动计算
+        window.onload = function() {
+            document.getElementById('speedValue').focus();
+            convertSpeed();
+        };
+        
+        // 实时转换功能
+        document.getElementById('speedValue').addEventListener('input', convertSpeed);
+        document.getElementById('fromUnit').addEventListener('change', convertSpeed);
+        document.getElementById('toUnit').addEventListener('change', convertSpeed);
+        
+        // 键盘支持
+        document.getElementById('speedValue').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') convertSpeed();
+        });
+    </script>
+</body>
+</html>
