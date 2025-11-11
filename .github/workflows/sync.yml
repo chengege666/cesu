@@ -20,7 +20,7 @@ jobs:
       - name: Sync to another repository
         run: |
           # 设置目标仓库（请修改为您的目标仓库）
-          TARGET_REPO="https://${{ secrets.TARGET_TOKEN }}@github.com/username/target-repo.git"
+          TARGET_REPO="https://github.com/chengege666/cesu"
           
           # 添加目标仓库为远程仓库
           git remote add target $TARGET_REPO
