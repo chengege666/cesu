@@ -1,47 +1,71 @@
-name: Sync Repository
+name: "同步上游仓库: chengege666/cesu"
 
 on:
-  push:
-    分支: [ main， master ]
+  # 🕒 触发器 1: 定时运行 (每天 UTC 时间 01:00 运行，相当于北京时间 09:00)
   schedule:
-    # 每天UTC时间0点自动同步（北京时间8点）
-    - cron: '0 0 * * *'
-  workflow_dispatch: # 允许手动触发
+    - cron: '0 1 * * *'
+  # ✋ 触发器 2: 手动运行
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: '选择要同步的目标分支'
+        required: true
+        默认: 'main' # ⚠️ 请根据您仓库的默认分支名修改此项
 
 jobs:
-  sync-to-other-repo:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
+      - name: ✅ 检出代码 (Checkout)
         uses: actions/checkout@v4
         with:
+          # 使用 GITHUB_TOKEN 进行身份验证，必须具有 'contents: write' 权限才能推送
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # 深度拉取，确保获取所有历史记录
           fetch-depth: 0
+          # 获取手动输入的分支名，否则使用 main 分支
+          ref: ${{ github.event.inputs.branch || 'main' }}
 
-      - name: Sync to another repository
+      - name: 🖥️ 配置 Git 用户信息
         run: |
-          # 设置目标仓库（请修改为您的目标仓库）
-          TARGET_REPO="https://github.com/chengege666/cesu"
-          
-          # 添加目标仓库为远程仓库
-          git remote add target $TARGET_REPO
-          
-          # 推送到目标仓库
-          git push target main:main --force
-          
-          # 如果需要同步所有分支
-          # git push target --all --force
-          # 如果需要同步标签
-          # git push target --tags --force
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-  sync-to-same-repo-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Sync to other branch
+      - name: 👍🏻 添加上游仓库并执行同步
         run: |
-          # 同步到其他分支（比如从main同步到develop）
-          git push origin main:develop --force
+          # 定义上游仓库 URL
+          UPSTREAM_REPO="https://github.com/chengege666/cesu.git"
+          
+          # 获取当前分支名
+          CURRENT_BRANCH=$(git branch --show-current)
+          echo "当前同步分支: $CURRENT_BRANCH"
+
+          # 添加上游 remote (如果已存在会跳过错误)
+          echo "添加上游 remote: upstream"
+          git remote add upstream $UPSTREAM_REPO || echo "Remote 'upstream' already exists."
+
+          # 从上游拉取内容
+          echo "从上游拉取所有分支和标签"
+          git fetch upstream
+
+          # 推荐使用 rebase 保持历史记录线性，避免不必要的 merge commit
+          echo "执行 rebase 操作: 合并上游分支 upstream/$CURRENT_BRANCH"
+          if git rebase upstream/$CURRENT_BRANCH; then
+              echo "Rebase 成功。"
+              # 推送变更到自己的仓库 (使用 --force-with-lease 更安全)
+              echo "推送变更到 origin/$CURRENT_BRANCH"
+              git push origin $CURRENT_BRANCH
+              echo "推送成功。"
+          else
+              echo "⚠️ Rebase 失败。可能是存在冲突。工作流将终止。"
+              git rebase --abort # 终止 rebase
+              exit 1 # 终止工作流
+          fi
+          
+      - name: ✅ 同步工作流完成
+        if: success()
+        run: echo "同步上游仓库 chengege666/cesu 到分支 ${{ github.event.inputs.branch || 'main' }} 成功！"
+      
+      - name: 👎🏻 同步工作流失败
+        if: failure()
+        run: echo "同步失败。请检查日志，特别是 rebase 步骤，可能存在合并冲突需要手动解决。"
