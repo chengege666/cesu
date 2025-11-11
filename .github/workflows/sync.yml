@@ -1,0 +1,47 @@
+name: Sync Repository
+
+on:
+  push:
+    分支: [ main， master ]
+  schedule:
+    # 每天UTC时间0点自动同步（北京时间8点）
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync-to-other-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync to another repository
+        run: |
+          # 设置目标仓库（请修改为您的目标仓库）
+          TARGET_REPO="https://${{ secrets.TARGET_TOKEN }}@github.com/username/target-repo.git"
+          
+          # 添加目标仓库为远程仓库
+          git remote add target $TARGET_REPO
+          
+          # 推送到目标仓库
+          git push target main:main --force
+          
+          # 如果需要同步所有分支
+          # git push target --all --force
+          # 如果需要同步标签
+          # git push target --tags --force
+
+  sync-to-same-repo-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync to other branch
+        run: |
+          # 同步到其他分支（比如从main同步到develop）
+          git push origin main:develop --force
